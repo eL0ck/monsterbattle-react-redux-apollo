@@ -4,11 +4,110 @@ import {compose, gql, graphql} from 'react-apollo'
 import {shuffle} from '../../lib/utils'
 
 const graphQLConnected = compose(
-  // graphql(gqc to cancel search hilight:``),
+  graphql(gql`
+    query {
+      monsters {
+        id
+        name
+        health
+        attack
+        defense
+      }
+    }
+  `, {
+    name: 'monsters',
+  }),
+  graphql(gql`
+    mutation startBattle(
+      $monster1Name: String!
+      $monster2Name: String!
+    ) {
+      startBattle(
+        monster1Name: $monster1Name,
+        monster2Name: $monster2Name,
+      ) {
+        id
+        monster1 {
+          name
+        }
+        monster2 {
+          name
+        }
+        monster1Health
+        monster2Health
+        started
+        finished
+        winner {
+          name
+        }
+        loser {
+          name
+        }
+        turns {
+          id
+          battleId
+          damage
+          attackingMonster {
+            name
+          }
+          defendingMonster {
+            name
+          }
+        }
+      }
+    }
+  `, {
+    name: 'startBattle',
+  }),
+  graphql(gql`
+    mutation doBattleTurn(
+      $battleId: String!
+      $attackingMonsterName: String!
+      $defendingMonsterName: String!
+    ) {
+      doBattleTurn(
+        battleId: $battleId,
+        attackingMonsterName: $attackingMonsterName,
+        defendingMonsterName: $defendingMonsterName
+      ) {
+        id
+        monster1 {
+          name
+        }
+        monster2 {
+          name
+        }
+        monster1Health
+        monster2Health
+        started
+        finished
+        winner {
+          name
+        }
+        loser {
+          name
+        }
+        turns {
+          id
+          battleId
+          damage
+          attackingMonster {
+            name
+          }
+          defendingMonster {
+            name
+          }
+        }
+      }
+    }
+  `, {
+    name: 'doBattleTurn',
+  }),
 )
 
 const withApolloLogic = (Board) => {
   class Apollo extends Component {
+    
     monsters = []
     battle = {}
 
@@ -24,7 +123,7 @@ const withApolloLogic = (Board) => {
 
     componentWillReceiveProps({monsters}) {
       if (monsters.loading || !monsters.monsters) return
-
+      
       this.monsters = shuffle(monsters.monsters.slice(0))
 
       if (!this.state.monster1) {
@@ -35,20 +134,20 @@ const withApolloLogic = (Board) => {
       }
     }
 
-    reset = () =>
+    reset = () => 
       this.setState({
         monster1Health: this.state.monster1.health,
         monster2Health: this.state.monster2.health
       })
-
+    
     findMonster = (monsterName) => {
       return this.monsters.find(({name}) => name === monsterName)
     }
 
-    selectMonster1 = (monsterName) =>
+    selectMonster1 = (monsterName) => 
       this.setState({monster1: this.findMonster(monsterName)}, this.reset)
 
-    selectMonster2 = (monsterName) =>
+    selectMonster2 = (monsterName) => 
       this.setState({monster2: this.findMonster(monsterName)}, this.reset)
 
     startBattle = () => {
@@ -60,7 +159,7 @@ const withApolloLogic = (Board) => {
       })
         .then(res => {
           this.battle = res.data.startBattle
-          this.setState({
+          this.setState({ 
             battleStarted: true,
             attackingMonsterName: this.state.monster1.name,
             defendingMonsterName: this.state.monster2.name,
@@ -88,12 +187,12 @@ const withApolloLogic = (Board) => {
         .then(({data}) => {
           this.battle = data.doBattleTurn
           this.battle.turns = this.battle.turns.map(({
-            attackingMonster,
-            defendingMonster,
+            attackingMonster, 
+            defendingMonster, 
             damage
           }) => ({
-            attacker: attackingMonster.name,
-            defender: defendingMonster.name,
+            attacker: attackingMonster.name, 
+            defender: defendingMonster.name, 
             damage
           }))
           console.log('this.battle', this.battle)
@@ -113,39 +212,39 @@ const withApolloLogic = (Board) => {
     }
 
     actionMethod = () =>
-      this.state.battleStarted
-      ? this.doTurn
-      : this.startBattle
+      this.state.battleStarted 
+        ? this.doTurn 
+        : this.startBattle
 
     render() {
       const {turns = []} = this.battle
       const {
         defendingMonsterName,
-        monster1,
-        monster2,
-        monster1Health,
-        monster2Health,
+        monster1, 
+        monster2, 
+        monster1Health, 
+        monster2Health, 
         battleStarted
       } = this.state
 
-      if (this.monsters.length === 0) return <div style={{ fontSize: '4em', textAlign: 'center', marginTop: '20%' }}>Loading...</div>;
+      if (this.monsters.length === 0) return null;
 
-      return (
+      return (  
         <Board
-        defender={defendingMonsterName}
-        monsters={this.monsters}
-        monster1={monster1}
-        monster2={monster2}
-        monster1Health={monster1Health}
-        monster2Health={monster2Health}
-        monster1Log={turns.filter((_, i) => Boolean(i % 2))}
-        monster2Log={turns.filter((_, i) => !Boolean(i % 2))}
-        battleStarted={battleStarted}
+          defender={defendingMonsterName}
+          monsters={this.monsters}
+          monster1={monster1} 
+          monster2={monster2} 
+          monster1Health={monster1Health} 
+          monster2Health={monster2Health} 
+          monster1Log={turns.filter((_, i) => Boolean(i % 2))}
+          monster2Log={turns.filter((_, i) => !Boolean(i % 2))}
+          battleStarted={battleStarted}
 
-        selectMonster1={this.selectMonster1}
-        selectMonster2={this.selectMonster2}
-        nextTurnAction={this.actionMethod()}
-          />
+          selectMonster1={this.selectMonster1}
+          selectMonster2={this.selectMonster2}
+          nextTurnAction={this.actionMethod()}
+        />
       )
     }
   }

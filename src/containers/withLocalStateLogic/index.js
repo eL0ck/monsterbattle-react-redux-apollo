@@ -6,7 +6,6 @@ import {
   shuffle
 } from '../../lib/utils'
 
-
 // import {max} from 'Math'
 const {max} = Math
 
@@ -15,6 +14,7 @@ const monsters = shuffle(monsterList)
 const findMonster = monsterName =>
   monsters.find(({name}) => name === monsterName)
 
+// TODO: try to fix this up without the dumb JS consts
 const withLocalStateLogic = Board => {
   class Game extends Component {
     state = {
@@ -39,7 +39,8 @@ const withLocalStateLogic = Board => {
     selectMonster2 = monster2 =>
       this.setState({monster2: findMonster(monster2)}, this.reset)
 
-    startBattle = () => this.setState({battleStarted: true}, this.reset)
+    startBattle = () =>
+      this.setState({battleStarted: true}, this.reset)
 
     monster1Attack = () => {
       const {turns, monster1, monster2, monster2Health} = this.state
@@ -71,6 +72,7 @@ const withLocalStateLogic = Board => {
 
     actionMethod = () => {
       const {turns, battleStarted} = this.state
+      // Mine
       if (battleStarted) {
         if (turns.legth % 2)
           return this.monster2Attack
@@ -79,6 +81,15 @@ const withLocalStateLogic = Board => {
       }
       else
         return this.startBattle
+      // End mine
+
+      // Theirs
+      //return battleStarted
+        //? turns.length % 2
+          //? this.monster2Attack
+          //: this.monster1Attack
+        //: this.startBattle
+        //End theirs
     }
 
     render() {
@@ -93,24 +104,24 @@ const withLocalStateLogic = Board => {
 
       return (
         <Board
-          defender={turns.length % 2 ? monster1.name : monster2.name}
-          monsters={monsters}
-          monster1={monster1}
-          monster2={monster2}
-          monster1Health={monster1Health}
-          monster2Health={monster2Health}
-          monster1Log={turns.filter((_, i) => Boolean(i % 2))}
-          monster2Log={turns.filter((_, i) => !Boolean(i % 2))}
-          battleStarted={battleStarted}
-          selectMonster1={this.selectMonster1}
-          selectMonster2={this.selectMonster2}
-          nextTurnAction={this.actionMethod()}
-        />
+        defender={turns.length % 2 ? monster1.name : monster2.name}
+        monsters={monsters}
+        monster1={monster1}
+        monster2={monster2}
+        monster1Health={monster1Health}
+        monster2Health={monster2Health}
+        monster1Log={turns.filter((_, i) => Boolean(i % 2))}
+        monster2Log={turns.filter((_, i) => !Boolean(i % 2))}
+        battleStarted={battleStarted}
+        selectMonster1={this.selectMonster1}
+        selectMonster2={this.selectMonster2}
+        nextTurnAction={this.actionMethod()}
+          />
       )
     }
   }
-
   return Game
 }
 
 export default withLocalStateLogic
+
